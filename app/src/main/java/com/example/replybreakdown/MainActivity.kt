@@ -41,10 +41,7 @@ class MainActivity : ComponentActivity() {
                         )
                 ) {
                     val windowSize = calculateWindowSizeClass(this)
-
-                    ReplyApp(
-                        windowSize = windowSize.widthSizeClass
-                    )
+                    ReplyApp(windowSize = windowSize.widthSizeClass)
                 }
             }
         }
