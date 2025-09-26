@@ -60,7 +60,9 @@ fun ReplyListAndDetailContent(
             verticalArrangement = Arrangement.spacedBy(
                 dimensionResource(R.dimen.email_list_item_vertical_spacing)
             ),
-            modifier = modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = dimensionResource(R.dimen.list_padding))
         ) {
             items(emails, key = {email -> email.id}) { email ->
                 EmailListItem(
@@ -74,8 +76,13 @@ fun ReplyListAndDetailContent(
         ReplyDetailsScreen(
             replyUiState = replyUiState,
             onBackIconPressed = { activity.finish() },
-            isFullScreen = replyUiState.isShowingHomePage,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .padding(
+                    start = dimensionResource(R.dimen.list_padding),
+                    top = dimensionResource(R.dimen.list_padding),
+                    bottom = dimensionResource(R.dimen.list_padding)
+                )
+                .weight(1f)
         )
     }
 }
