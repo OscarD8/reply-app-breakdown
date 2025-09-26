@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class ReplyViewModel: ViewModel() {
-    private val _uiState = MutableStateFlow(ReplyUiState())
+    private var _uiState = MutableStateFlow(ReplyUiState())
     val uiState: StateFlow<ReplyUiState> = _uiState.asStateFlow()
 
     init {
@@ -18,8 +18,7 @@ class ReplyViewModel: ViewModel() {
     }
 
     private fun initialiseUiState() {
-        val mailboxes: Map<MailboxType, List<Email>> =
-            LocalEmailsDataProvider.allEmails.groupBy { it.mailbox }
+        val mailboxes = LocalEmailsDataProvider.allEmails.groupBy { it.mailbox }
         _uiState.value = ReplyUiState(
             mailboxes = mailboxes,
             currentSelectedEmail = mailboxes[MailboxType.Inbox]?.get(0)
@@ -27,26 +26,28 @@ class ReplyViewModel: ViewModel() {
         )
     }
 
-    fun updateDetailsScreenState(email: Email) {
-        _uiState.update { it.copy(
-            currentSelectedEmail = email,
-            isShowingHomePage = false
-        ) }
-    }
-
-    fun resetHomeScreenState() {
+    fun updateDetailsScreenStates(email: Email) {
         _uiState.update {
             it.copy(
-                isShowingHomePage = true,
-                currentSelectedEmail = it.mailboxes[it.currentMailbox]?.get(0)
-                    ?: LocalEmailsDataProvider.defaultEmail
+                currentSelectedEmail = email,
+                isShowingHomePage = false
             )
         }
     }
-
-    fun updateCurrentMailbox(mailbox: MailboxType) {
-        _uiState.update { it.copy(
-            currentMailbox = mailbox
-        ) }
+    fun resetHomeScreenStates() {
+        _uiState.update {
+            it.copy(
+                currentSelectedEmail = it.mailboxes[it.currentMailbox]?.get(0)
+                    ?: LocalEmailsDataProvider.defaultEmail,
+                isShowingHomePage = true
+            )
+        }
+    }
+    fun updateCurrentMailbox(mailboxType: MailboxType) {
+        _uiState.update {
+            it.copy(
+                currentMailbox = mailboxType
+            )
+        }
     }
 }

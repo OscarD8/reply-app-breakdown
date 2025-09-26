@@ -1,7 +1,7 @@
 package com.example.replybreakdown.ui.utils
 
 enum class ReplyContentType {
-    LIST, LIST_DETAIL
+    LIST_ONLY, LIST_DETAIL
 }
 
 enum class ReplyNavigationType {

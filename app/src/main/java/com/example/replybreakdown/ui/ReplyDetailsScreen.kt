@@ -21,8 +21,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,55 +34,57 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.replybreakdown.data.MailboxType
+import com.example.replybreakdown.data.local.LocalEmailsDataProvider
+import com.example.replybreakdown.ui.theme.ReplyTheme
 import com.example.replybreakdown.R
 import com.example.replybreakdown.data.Email
-import com.example.replybreakdown.data.MailboxType
 
 @Composable
 fun ReplyDetailsScreen(
     replyUiState: ReplyUiState,
-    onBackPressed: () -> Unit,
+    onBackIconPressed: () -> Unit,
     modifier: Modifier = Modifier,
     isFullScreen: Boolean = false
 ) {
     BackHandler {
-        onBackPressed
+        onBackIconPressed
     }
+
     Box(modifier = modifier) {
         LazyColumn(
             contentPadding = PaddingValues(
                 top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
             ),
             modifier = Modifier
-                .testTag(stringResource(R.string.details_screen))
                 .fillMaxSize()
-                .background(color = MaterialTheme.colorScheme.inverseOnSurface)
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
         ) {
             item {
                 if (isFullScreen) {
-                    ReplyDetailsScreenTopBar(
-                        onBackButtonClicked = onBackPressed,
+                    ReplyDetailScreenTopBar(
+                        onBackIconPressed = onBackIconPressed,
                         replyUiState = replyUiState,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(
-                                top = dimensionResource(R.dimen.detail_topbar_padding_bottom),
-                                bottom = dimensionResource(R.dimen.topbar_padding_vertical)
+                                top = dimensionResource(R.dimen.topbar_padding_vertical),
+                                bottom = dimensionResource(R.dimen.detail_topbar_padding_bottom)
                             )
                     )
                 }
-                ReplyEmailsDetailCard(
+                EmailDetailsCard(
                     email = replyUiState.currentSelectedEmail,
                     mailboxType = replyUiState.currentMailbox,
-                    isFullScreen = isFullScreen,
                     modifier = if (isFullScreen) {
                         Modifier.padding(horizontal = dimensionResource(R.dimen.detail_card_outer_padding_horizontal))
                     } else {
-                        Modifier
-                    }
+                        Modifier.padding(end = dimensionResource(R.dimen.detail_card_outer_padding_horizontal))
+                    },
+                    isFullScreen = isFullScreen
                 )
             }
         }
@@ -90,8 +92,8 @@ fun ReplyDetailsScreen(
 }
 
 @Composable
-fun ReplyDetailsScreenTopBar(
-    onBackButtonClicked: () -> Unit,
+fun ReplyDetailScreenTopBar(
+    onBackIconPressed: () -> Unit,
     replyUiState: ReplyUiState,
     modifier: Modifier = Modifier
 ) {
@@ -100,32 +102,35 @@ fun ReplyDetailsScreenTopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
-            onClick = onBackButtonClicked,
+            onClick = onBackIconPressed,
             modifier = Modifier
-                .padding(horizontal = dimensionResource(R.dimen.detail_topbar_back_button_padding_horizontal))
+                .padding(
+                    horizontal =
+                        dimensionResource(R.dimen.detail_topbar_back_button_padding_horizontal)
+                )
                 .background(MaterialTheme.colorScheme.surface, shape = CircleShape)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.navigation_back)
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = dimensionResource(R.dimen.detail_subject_padding_end))
-            ) {
-                Text(
-                    text = stringResource(replyUiState.currentSelectedEmail.body),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = dimensionResource(R.dimen.detail_subject_padding_end))
+        ) {
+            Text(
+                text = stringResource(replyUiState.currentSelectedEmail.subject),
+                style = MaterialTheme.typography.titleMedium,
+            )
         }
     }
 }
 
 @Composable
-fun ReplyEmailsDetailCard(
+private fun EmailDetailsCard(
     email: Email,
     mailboxType: MailboxType,
     modifier: Modifier = Modifier,
@@ -133,7 +138,7 @@ fun ReplyEmailsDetailCard(
 ) {
     val context = LocalContext.current
     val displayToast = { text: String ->
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show() // WTF IS TEXT
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
 
     Card(
@@ -168,8 +173,40 @@ fun ReplyEmailsDetailCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             DetailsScreenButtonBar(
-                mailboxType,
-                displayToast
+                mailboxType = mailboxType,
+                displayToast = displayToast
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailsScreenHeader(email: Email, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+    ) {
+        ReplyProfileImage(
+            drawableRes = email.sender.avatar,
+            description = stringResource(email.sender.firstName) + " " +
+                            stringResource(email.sender.lastName),
+            modifier = Modifier
+                .size(dimensionResource(R.dimen.email_header_profile_size))
+        )
+        Column(
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(R.dimen.email_header_content_padding_horizontal),
+                vertical = dimensionResource(R.dimen.email_header_content_padding_vertical)
+            ),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = stringResource(email.sender.firstName),
+                style = MaterialTheme.typography.labelMedium
+            )
+            Text(
+                text = stringResource(email.createdAt),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -183,54 +220,53 @@ private fun DetailsScreenButtonBar(
 ) {
     Box(modifier = modifier) {
         when (mailboxType) {
-            MailboxType.Drafts ->
+            MailboxType.Drafts -> {
                 ActionButton(
                     text = stringResource(R.string.continue_composing),
-                    onButtonClicked = displayToast
+                    onButtonClick = displayToast,
                 )
-            MailboxType.Spam ->
-                Row(
+            }
+            MailboxType.Spam -> {
+                Row (
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            vertical = dimensionResource(R.dimen.detail_button_bar_padding_vertical)
-                        ),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimensionResource(R.dimen.detail_button_bar_item_spacing)
-                    )
+                        .padding(vertical = dimensionResource(R.dimen.detail_action_button_padding_vertical)),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.detail_button_bar_item_spacing))
                 ) {
                     ActionButton(
                         text = stringResource(R.string.move_to_inbox),
-                        onButtonClicked = displayToast,
+                        onButtonClick = displayToast,
                         modifier = Modifier.weight(1f)
                     )
                     ActionButton(
                         text = stringResource(R.string.delete),
-                        onButtonClicked = displayToast,
-                        containIrreversibleAction = true,
+                        onButtonClick = displayToast,
+                        irreversibleAction = true,
                         modifier = Modifier.weight(1f)
                     )
                 }
-            MailboxType.Sent, MailboxType.Inbox ->
-                Row (
+            }
+            MailboxType.Sent, MailboxType.Inbox -> {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = dimensionResource(R.dimen.detail_button_bar_padding_vertical)),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        dimensionResource(R.dimen.detail_button_bar_item_spacing)
-                    )
+                        .padding(
+                            vertical = dimensionResource(R.dimen.detail_action_button_padding_vertical)
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.detail_button_bar_item_spacing))
                 ) {
                     ActionButton(
                         text = stringResource(R.string.reply),
-                        onButtonClicked = displayToast,
+                        onButtonClick = displayToast,
                         modifier = Modifier.weight(1f)
                     )
                     ActionButton(
                         text = stringResource(R.string.reply_all),
-                        onButtonClicked = displayToast,
+                        onButtonClick = displayToast,
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
         }
     }
 }
@@ -238,70 +274,52 @@ private fun DetailsScreenButtonBar(
 @Composable
 private fun ActionButton(
     text: String,
-    onButtonClicked: (String) -> Unit,
+    onButtonClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    containIrreversibleAction: Boolean = false
+    irreversibleAction: Boolean = false
 ) {
-    Box(modifier = modifier) {
-        Button(
-            onClick = { onButtonClicked(text) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = dimensionResource(R.dimen.detail_action_button_padding_vertical)),
-            colors = ButtonDefaults.buttonColors(
-                containerColor =
-                    if (containIrreversibleAction) {
-                        MaterialTheme.colorScheme.errorContainer
-                    } else {
-                        MaterialTheme.colorScheme.primaryContainer
-                    }
-            )
-        ) {
-            Text(
-                text = text,
-                color = if (containIrreversibleAction) {
-                    MaterialTheme.colorScheme.onError
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-        }
-    }
+   Box(modifier = modifier) {
+       Button(
+           onClick = { onButtonClick(text) },
+           colors = if (irreversibleAction) {
+               ButtonDefaults.buttonColors(MaterialTheme.colorScheme.errorContainer)
+           } else {
+               ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primaryContainer)
+           },
+           modifier = Modifier
+               .fillMaxWidth()
+               .padding(
+                   vertical = dimensionResource(R.dimen.detail_action_button_padding_vertical)
+               )
+       ) {
+           Text(
+               text = text,
+               color = if (irreversibleAction) {
+                   MaterialTheme.colorScheme.onErrorContainer
+               } else {
+                   MaterialTheme.colorScheme.onPrimaryContainer
+               }
+           )
+       }
+   }
 }
 
-
+@Preview
 @Composable
-fun DetailsScreenHeader(
-    email: Email,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier) {
-        ReplyProfileImage(
-            drawableResource = email.sender.avatar,
-            description = stringResource(email.sender.firstName) + " " +
-                stringResource(email.sender.lastName),
-            modifier = Modifier.size(
-                dimensionResource(R.dimen.email_header_profile_size)
-            )
+fun PreviewDetail() {
+    val mailboxes = LocalEmailsDataProvider.allEmails.groupBy { it.mailbox }
+    val uiState = ReplyUiState(
+        mailboxes = mailboxes,
+        currentMailbox = MailboxType.Drafts,
+        currentSelectedEmail = mailboxes[MailboxType.Drafts]?.get(0)
+            ?: LocalEmailsDataProvider.defaultEmail
+    )
+    ReplyTheme {
+        ReplyDetailsScreen(
+            replyUiState = uiState,
+            onBackIconPressed = {},
+            modifier = Modifier.fillMaxSize(),
+            isFullScreen = false
         )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(
-                    horizontal = dimensionResource(R.dimen.email_header_content_padding_horizontal),
-                    vertical = dimensionResource(R.dimen.email_header_content_padding_vertical)
-                ),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = stringResource(email.sender.firstName),
-                style = MaterialTheme.typography.labelMedium
-            )
-            Text(
-                text = stringResource(email.createdAt),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
     }
 }
