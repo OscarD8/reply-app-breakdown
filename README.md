@@ -21,7 +21,7 @@ This project was built as a learning exercise to:
 - **Material 3**  
 - **UI Tests with Compose Testing APIs**  
 
-<img width="400" height="248" alt="image" src="https://github.com/user-attachments/assets/82a4685c-8c6d-4740-ba78-5f4e39ad712d" />  
+<img width="400" height="259" alt="image" src="https://github.com/user-attachments/assets/d0eedb7a-53aa-4fb1-8d4d-a671a63cc67e" />
 <img width="179" height="400" alt="image" src="https://github.com/user-attachments/assets/c79e5f69-7b65-45b2-bc22-d65ae9ba6a53" />
 <img width="179" height="400" alt="image" src="https://github.com/user-attachments/assets/972ee6ad-3ced-4853-80bc-861423653147" />
 
